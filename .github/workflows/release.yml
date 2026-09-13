@@ -23,7 +23,7 @@ jobs:
 
       - name: Build EXE
         run: |
-          py -m PyInstaller --noconfirm --onefile --windowed --name "DeepSeekBalance" --add-data "index.html;." --icon "icon.ico" "check_balance.pyw"
+          python -m PyInstaller --noconfirm --onefile --windowed --name "DeepSeekBalance" --add-data "index.html;." --icon "icon.ico" "check_balance.pyw"
 
       - name: Copy config
         run: Copy-Item "config.json" -Destination "dist\config.json"
