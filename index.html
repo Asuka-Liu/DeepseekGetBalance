@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepSeek 余额查询</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', 'Inter', 'Helvetica Neue', sans-serif;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #f0f4fe;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      transition: opacity 0.3s ease;
+    }
+
+    .widget {
+      width: 100%;
+      height: calc(100vh - 20px);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 28px;
+      box-shadow:
+        0 25px 40px -12px rgba(0, 20, 50, 0.12),
+        0 0 0 1px rgba(255, 255, 255, 0.6),
+        inset 0 1px 1px rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(200, 215, 245, 0.6);
+      color: #1e2a4a;
+      padding: 24px 22px 18px 22px;
+      transition: box-shadow 0.2s ease, opacity 0.25s ease, transform 0.25s ease;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+      position: relative;
+    }
+
+    .title-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .title-section h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      background: linear-gradient(135deg, #1e2f5a 0%, #3a5f9e 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(38, 200, 140, 0.12);
+      border: 1px solid rgba(38, 200, 140, 0.4);
+      padding: 6px 12px;
+      border-radius: 60px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      color: #0f8f5e;
+      backdrop-filter: blur(4px);
+      white-space: nowrap;
+      -webkit-user-drag: none;
+    }
+
+    .status-badge.error {
+      background: rgba(231, 76, 60, 0.12);
+      border-color: rgba(231, 76, 60, 0.4);
+      color: #c0392b;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #18b87c;
+      border-radius: 50%;
+      box-shadow: 0 0 6px rgba(24, 184, 124, 0.6);
+      display: inline-block;
+    }
+
+    .status-badge.error .status-dot {
+      background: #e74c3c;
+      box-shadow: 0 0 6px rgba(231, 76, 60, 0.6);
+    }
+
+    .close-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid #d4e0f5;
+      background: #ffffff;
+      color: #5f72a0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      outline: none;
+      padding: 0;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      -webkit-user-drag: none;
+    }
+
+    .close-btn:hover {
+      background: #ffecec;
+      border-color: #ffb3b3;
+      color: #d43b3b;
+      box-shadow: 0 4px 10px -4px rgba(220, 60, 60, 0.25);
+    }
+
+    .close-btn:active {
+      transform: scale(0.92);
+    }
+
+    .close-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    .balance-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .balance-card {
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 16px 18px;
+      border: 1px solid #e2eaf6;
+      box-shadow: 0 4px 12px -4px rgba(0, 20, 50, 0.06), 0 1px 2px rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .balance-card:hover {
+      border-color: #b2caf0;
+      box-shadow: 0 8px 18px -8px rgba(50, 100, 200, 0.2), 0 1px 2px rgba(255, 255, 255, 0.8);
+    }
+
+    .balance-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #4f6390;
+    }
+
+    .balance-label svg {
+      width: 18px;
+      height: 18px;
+      stroke: #6a83b8;
+      stroke-width: 1.8;
+      fill: none;
+    }
+
+    .balance-value {
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #1a2940;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+      font-feature-settings: "tnum";
+    }
+
+    .balance-card.total {
+      background: linear-gradient(135deg, #e8f0fe, #dae6ff);
+      border-color: #b8ceff;
+      box-shadow: 0 8px 16px -8px rgba(60, 120, 240, 0.25), inset 0 1px 1px #ffffff;
+    }
+
+    .balance-card.total .balance-value {
+      font-size: 1.8rem;
+      color: #1a3a7a;
+      text-shadow: 0 1px 4px rgba(255, 255, 255, 0.9);
+    }
+
+    .balance-card.total .balance-label {
+      color: #335599;
+    }
+
+    .balance-card.total .balance-label svg {
+      stroke: #3a6bc0;
+    }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 10px;
+      border-top: 1px solid #dce5f2;
+      margin-top: 6px;
+    }
+
+    .countdown {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+      color: #5f72a0;
+      background: #edf2fc;
+      padding: 8px 14px;
+      border-radius: 40px;
+      backdrop-filter: blur(4px);
+      border: 1px solid #d4e0f5;
+    }
+
+    .countdown .timer {
+      font-weight: 700;
+      font-feature-settings: "tnum";
+      color: #2a4b9a;
+      min-width: 32px;
+      text-align: center;
+      background: #d9e5ff;
+      padding: 2px 8px;
+      border-radius: 30px;
+      letter-spacing: 0.5px;
+    }
+
+    .refresh-btn {
+      background: #ffffff;
+      border: 1px solid #c9d9f5;
+      color: #2c4b8a;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 6px 14px -6px rgba(0, 30, 80, 0.12), 0 1px 2px rgba(255, 255, 255, 0.8);
+      transition: all 0.2s ease;
+      outline: none;
+      padding: 0;
+      -webkit-user-drag: none;
+    }
+
+    .refresh-btn:hover {
+      background: #f6faff;
+      border-color: #7aa2f0;
+      box-shadow: 0 8px 18px -6px rgba(50, 100, 220, 0.3), 0 0 0 1px rgba(150, 190, 255, 0.3);
+      transform: scale(1.02);
+    }
+
+    .refresh-btn:active {
+      transform: scale(0.96);
+      background: #e9f0ff;
+      box-shadow: 0 2px 8px rgba(50, 100, 220, 0.2);
+    }
+
+    .refresh-btn svg {
+      width: 24px;
+      height: 24px;
+      stroke: #2f5194;
+      stroke-width: 1.8;
+      fill: none;
+      transition: transform 0.3s ease;
+    }
+
+    .refresh-btn.refreshing svg {
+      animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="widget" id="widget">
+    <div class="header pywebview-drag-region">
+      <div class="title-section">
+        <h2>DeepSeek</h2>
+      </div>
+      <div class="header-actions">
+        <div class="status-badge" id="statusBadge">
+          <span class="status-dot"></span>
+          <span id="accountStatus">加载中...</span>
+        </div>
+        <button class="close-btn" id="closeBtn" title="关闭">
+          <svg viewBox="0 0 24 24" fill="none">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="balance-grid">
+      <div class="balance-card total">
+        <div class="balance-label">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="8" />
+            <path d="M12 7v10" />
+            <path d="M9 10h6" />
+            <path d="M9 14h6" />
+          </svg>
+          <span>总余额</span>
+        </div>
+        <div class="balance-value" id="totalBalance">--</div>
+      </div>
+
+      <div class="balance-card">
+        <div class="balance-label">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="6" width="20" height="12" rx="2" />
+            <path d="M12 12h.01" />
+            <path d="M16 10h.01" />
+            <path d="M8 10h.01" />
+          </svg>
+          <span>赠送余额</span>
+        </div>
+        <div class="balance-value" id="giftBalance">--</div>
+      </div>
+
+      <div class="balance-card">
+        <div class="balance-label">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <path d="M2 10h20" />
+            <path d="M7 15h2" />
+            <path d="M12 15h5" />
+          </svg>
+          <span>充值余额</span>
+        </div>
+        <div class="balance-value" id="rechargeBalance">--</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="countdown">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f72a0" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 3" />
+        </svg>
+        <span>自动刷新</span>
+        <span class="timer" id="countdownTimer">--</span>
+        <span>s</span>
+      </div>
+      <button class="refresh-btn" id="refreshBtn" title="手动刷新">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 1 1-9-9" />
+          <path d="M21 3v6h-6" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let countdown = 30;
+    let refreshInterval = 30;
+    let timerId = null;
+    let isRefreshing = false;
+
+    function formatMoney(val) {
+      return '¥ ' + parseFloat(val).toFixed(2);
+    }
+
+    function updateUI(data) {
+      const badge = document.getElementById('statusBadge');
+      const statusEl = document.getElementById('accountStatus');
+
+      if (data.is_available) {
+        badge.className = 'status-badge';
+        statusEl.textContent = '正常';
+      } else {
+        badge.className = 'status-badge error';
+        statusEl.textContent = '异常';
+      }
+
+      if (data.balance_infos && data.balance_infos.length > 0) {
+        const info = data.balance_infos[0];
+        document.getElementById('totalBalance').textContent = formatMoney(info.total_balance);
+        document.getElementById('giftBalance').textContent = formatMoney(info.granted_balance);
+        document.getElementById('rechargeBalance').textContent = formatMoney(info.topped_up_balance);
+      } else {
+        document.getElementById('totalBalance').textContent = '¥ 6.66';
+        document.getElementById('giftBalance').textContent = '¥ 6.66';
+        document.getElementById('rechargeBalance').textContent = '¥ 6.66';
+      }
+    }
+
+    function showError() {
+      const badge = document.getElementById('statusBadge');
+      const statusEl = document.getElementById('accountStatus');
+      badge.className = 'status-badge error';
+      statusEl.textContent = '异常';
+      document.getElementById('totalBalance').textContent = '¥ 6.66';
+      document.getElementById('giftBalance').textContent = '¥ 6.66';
+      document.getElementById('rechargeBalance').textContent = '¥ 6.66';
+    }
+
+    function resetCountdown() {
+      countdown = refreshInterval;
+      document.getElementById('countdownTimer').textContent = countdown;
+    }
+
+    function startCountdown() {
+      if (timerId) clearInterval(timerId);
+      resetCountdown();
+      timerId = setInterval(() => {
+        countdown -= 1;
+        document.getElementById('countdownTimer').textContent = countdown;
+        if (countdown <= 0 && !isRefreshing) {
+          doRefresh(false);
+        }
+      }, 1000);
+    }
+
+    async function doRefresh(showAnimation) {
+      if (isRefreshing) return;
+      isRefreshing = true;
+
+      const btn = document.getElementById('refreshBtn');
+      if (showAnimation) btn.classList.add('refreshing');
+
+      try {
+        const data = await pywebview.api.get_balance();
+        updateUI(data);
+      } catch (e) {
+        showError();
+      } finally {
+        if (showAnimation) btn.classList.remove('refreshing');
+        resetCountdown();
+        isRefreshing = false;
+      }
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+      if (!isRefreshing) doRefresh(true);
+    });
+
+    document.getElementById('closeBtn').addEventListener('click', () => {
+      pywebview.api.close_window();
+    });
+
+    window.addEventListener('pywebviewready', async () => {
+      try {
+        const config = await pywebview.api.get_config();
+        if (config.auto_refresh_seconds) {
+          refreshInterval = config.auto_refresh_seconds;
+        }
+      } catch (e) {}
+      doRefresh(false);
+      startCountdown();
+    });
+  </script>
+</body>
+</html>
