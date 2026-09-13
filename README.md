@@ -13,9 +13,7 @@
 
 ## 截图
 
-| 正常状态 | 异常状态 |
-|---------|---------|
-| ![正常](https://via.placeholder.com/300x400?text=Normal) | ![异常](https://via.placeholder.com/300x400?text=Error) |
+> 运行截图请查看 [Releases](https://github.com/Asuka-Liu/DeepseekGetBalance/releases) 页面
 
 ## 快速开始
 
