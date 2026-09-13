@@ -13,7 +13,9 @@
 
 ## 截图
 
-> 运行截图请查看 [Releases](https://github.com/Asuka-Liu/DeepseekGetBalance/releases) 页面
+| 正常状态 | 异常状态 |
+|---------|---------|
+| ![正常](img/normal.png) | ![异常](img/error.png) |
 
 ## 快速开始
 
